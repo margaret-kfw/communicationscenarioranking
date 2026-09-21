@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Educator Scenario Ranking Tool</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Inter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .drag-ghost { opacity: 0.3; transform: scale(0.98); }
+        .drag-over { border-top: 3px solid #14b8a6 !important; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-teal-500 selection:text-white pb-10">
+
+    <!-- Sticky App Header -->
+    <header class="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-30 shadow-md">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <div class="p-2 bg-teal-500/10 border border-teal-500/20 rounded-xl text-teal-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-white leading-tight">
+                        Scenario Ranking Tool
+                    </h1>
+                    <p class="text-[11px] text-slate-400">Drag or use arrow buttons to reorder</p>
+                </div>
+            </div>
+
+            <!-- Top Actions -->
+            <button onclick="resetOrder()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl border border-slate-700 transition-all min-h-[44px]">
+                Reset Order
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-4xl mx-auto px-4 py-6 space-y-8 w-full flex-grow">
+
+        <!-- Banner & Context -->
+        <div class="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/50 rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-lg space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[11px] font-semibold">
+                <span>⚡ Interactive Drag & Touch Reordering</span>
+            </div>
+            <h2 class="text-lg sm:text-xl font-extrabold text-white">Rank Scenarios: Hardest (Top) to Easiest (Bottom)</h2>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                Organize the 10 scenarios below based on difficulty. Position your hardest scenario at <strong class="text-rose-400">#1 at the top</strong> and your easiest scenario at <strong class="text-teal-400">#10 at the bottom</strong>.
+            </p>
+        </div>
+
+        <!-- Scenarios Ranking Container -->
+        <section id="scenarios-list" class="space-y-3 min-h-[400px]">
+            <!-- Dynamically populated scenario cards -->
+        </section>
+
+        <!-- Personal Reflection Section -->
+        <section class="bg-slate-900 rounded-2xl border border-slate-800 p-4 sm:p-6 space-y-4 shadow-xl">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+                        <span>📝</span> Personal Approach & Reflection
+                    </h3>
+                    <p class="text-xs text-slate-400">How would you approach these scenarios in practice?</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyReflection()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-1.5 min-h-[44px]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v11a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                        Copy
+                    </button>
+                    <button onclick="downloadReflection()" class="px-3.5 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-semibold rounded-xl shadow-md transition-all flex items-center gap-1.5 min-h-[44px]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+
+            <!-- Focus Reflection Guidance -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-300">
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                    <strong class="text-teal-300 block font-semibold">Consider:</strong>
+                    <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-400">
+                        <li>How could <strong>active listening</strong> de-escalate tension?</li>
+                        <li>How could <strong>clarifying questions</strong> clear up vagueness?</li>
+                    </ul>
+                </div>
+                <div class="p-3 bg-slate-950 rounded-xl border border-slate-800/80 space-y-1">
+                    <strong class="text-indigo-300 block font-semibold">Communication Strategy:</strong>
+                    <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-400">
+                        <li>How could <strong>PREP</strong> (Point, Reason, Example, Point) help?</li>
+                        <li>How would you adjust your tone for <strong>students vs. teachers</strong>?</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Reflection Textarea -->
+            <div class="space-y-2">
+                <label for="reflection-textarea" class="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Notes & Action Plan:
+                </label>
+                <textarea id="reflection-textarea" rows="5" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-all leading-relaxed" placeholder="Type your personal reflection and communication strategy here... (Auto-saves to browser)"></textarea>
+                <div class="flex items-center justify-between text-[11px] text-slate-500">
+                    <span id="save-status">Auto-saved to browser</span>
+                    <span>Ready to export</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-6 right-4 sm:right-6 z-50 bg-teal-600 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-semibold opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        <span id="toast-message">Notification</span>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Initial list of 10 scenarios
+        const INITIAL_SCENARIOS = [
+            {
+                id: 'unclear-instructions',
+                title: 'Unclear Instructions',
+                desc: 'The teacher gives vague directions (e.g., "Help the struggling students") but doesn’t specify who or how.'
+            },
+            {
+                id: 'last-minute-changes',
+                title: 'Last-Minute Changes',
+                desc: 'The teacher alters the lesson plan 5 minutes before class but doesn’t explain why.'
+            },
+            {
+                id: 'assumed-knowledge',
+                title: 'Assumed Knowledge',
+                desc: 'The teacher references a policy/procedure (e.g., "Use the ABC system") but never trained you on it.'
+            },
+            {
+                id: 'nonverbal-tension',
+                title: 'Nonverbal Tension',
+                desc: 'The teacher seems annoyed when you ask questions but won’t say why.'
+            },
+            {
+                id: 'information-overload',
+                title: 'Information Overload',
+                desc: 'Critical updates are split between email, Google Classroom, and paper notes.'
+            },
+            {
+                id: 'facial-expression-faux-pas',
+                title: 'Facial Expression Faux Pas',
+                desc: 'Your stressed expression makes students think you’re angry at them.'
+            },
+            {
+                id: 'group-work-breakdown',
+                title: 'Group Work Breakdown',
+                desc: 'A team ignores a quiet student’s ideas, assuming they "don’t care".'
+            },
+            {
+                id: 'role-confusion',
+                title: 'Role Confusion',
+                desc: 'The front office staff asks you to cover lunch duty, but the teacher expects you to prep materials.'
+            },
+            {
+                id: 'language-barriers',
+                title: 'Language Barriers',
+                desc: 'A student nods "yes" but clearly doesn’t understand.'
+            },
+            {
+                id: 'overstepping-boundaries',
+                title: 'Overstepping Boundaries',
+                desc: 'A student mistakes your friendliness for favouritism and complains.'
+            }
+        ];
+
+        let scenarios = [...INITIAL_SCENARIOS];
+        let draggedIndex = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderScenarios();
+
+            // Load reflection notes from localStorage if available
+            const savedReflection = localStorage.getItem('educator_ranking_reflection_notes');
+            if (savedReflection) {
+                document.getElementById('reflection-textarea').value = savedReflection;
+            }
+
+            // Auto-save input handler
+            document.getElementById('reflection-textarea').addEventListener('input', (e) => {
+                localStorage.setItem('educator_ranking_reflection_notes', e.target.value);
+                const status = document.getElementById('save-status');
+                status.innerText = 'Auto-saved just now';
+                setTimeout(() => {
+                    status.innerText = 'Auto-saved to browser';
+                }, 2000);
+            });
+        });
+
+        function renderScenarios() {
+            const container = document.getElementById('scenarios-list');
+            container.innerHTML = '';
+
+            scenarios.forEach((item, index) => {
+                const rankNum = index + 1;
+                
+                // Tier Color Badges
+                let rankBadgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+                let tierTag = '';
+
+                if (rankNum <= 3) {
+                    rankBadgeClass = 'bg-rose-500/20 text-rose-300 border-rose-500/40 font-bold';
+                    tierTag = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/20">High Difficulty</span>';
+                } else if (rankNum <= 7) {
+                    rankBadgeClass = 'bg-amber-500/20 text-amber-300 border-amber-500/40 font-bold';
+                    tierTag = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">Moderate</span>';
+                } else {
+                    rankBadgeClass = 'bg-teal-500/20 text-teal-300 border-teal-500/40 font-bold';
+                    tierTag = '<span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-teal-500/10 text-teal-300 border border-teal-500/20">Lower Difficulty</span>';
+                }
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-900 rounded-xl p-3.5 sm:p-4 border border-slate-800 shadow-md transition-all flex flex-col gap-3 group';
+                card.draggable = true;
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-3">
+                            <!-- Rank Number Badge -->
+                            <div class="w-10 h-10 rounded-xl border ${rankBadgeClass} flex items-center justify-center text-xs sm:text-sm font-extrabold flex-shrink-0 shadow-inner mt-0.5">
+                                #${rankNum}
+                            </div>
+                            <div class="space-y-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h3 class="font-bold text-white text-sm sm:text-base">${item.title}</h3>
+                                    ${tierTag}
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${item.desc}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Touch Controls Bar -->
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-800/80">
+                        <span class="text-[11px] text-slate-500 font-medium hidden sm:inline">Drag or use buttons to move</span>
+                        
+                        <div class="flex items-center gap-1.5 w-full sm:w-auto justify-between sm:justify-end">
+                            <div class="flex items-center gap-1">
+                                <!-- Up Button -->
+                                <button onclick="moveItem(${index}, -1)" ${index === 0 ? 'disabled class="opacity-20 cursor-not-allowed"' : 'class="hover:bg-slate-800 text-slate-300 hover:text-white"'} class="w-11 h-11 sm:w-9 sm:h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center transition-all active:scale-95" title="Move Up">
+                                    <span class="text-xs">▲</span>
+                                </button>
+                                <!-- Down Button -->
+                                <button onclick="moveItem(${index}, 1)" ${index === scenarios.length - 1 ? 'disabled class="opacity-20 cursor-not-allowed"' : 'class="hover:bg-slate-800 text-slate-300 hover:text-white"'} class="w-11 h-11 sm:w-9 sm:h-9 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center transition-all active:scale-95" title="Move Down">
+                                    <span class="text-xs">▼</span>
+                                </button>
+                            </div>
+
+                            <!-- Rank Selector Dropdown -->
+                            <div class="flex items-center gap-1.5">
+                                <label class="text-[11px] text-slate-400">Rank:</label>
+                                <select onchange="jumpToRank(${index}, this.value)" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-xl p-2 min-h-[44px] sm:min-h-[36px] focus:outline-none focus:border-teal-500 font-semibold">
+                                    ${scenarios.map((_, rIdx) => `<option value="${rIdx + 1}" ${rIdx === index ? 'selected' : ''}>#${rIdx + 1}</option>`).join('')}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Drag & Drop Events
+                card.addEventListener('dragstart', (e) => {
+                    draggedIndex = index;
+                    card.classList.add('drag-ghost');
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('drag-ghost');
+                    draggedIndex = null;
+                    document.querySelectorAll('#scenarios-list > div').forEach(c => c.classList.remove('drag-over'));
+                });
+
+                card.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    card.classList.add('drag-over');
+                });
+
+                card.addEventListener('dragleave', () => {
+                    card.classList.remove('drag-over');
+                });
+
+                card.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    card.classList.remove('drag-over');
+                    if (draggedIndex !== null && draggedIndex !== index) {
+                        const movedItem = scenarios.splice(draggedIndex, 1)[0];
+                        scenarios.splice(index, 0, movedItem);
+                        renderScenarios();
+                        showToast(`Moved "${movedItem.title}" to position #${index + 1}`);
+                    }
+                });
+
+                container.appendChild(card);
+            });
+        }
+
+        function moveItem(index, direction) {
+            const targetIndex = index + direction;
+            if (targetIndex < 0 || targetIndex >= scenarios.length) return;
+            const item = scenarios.splice(index, 1)[0];
+            scenarios.splice(targetIndex, 0, item);
+            renderScenarios();
+            showToast(`Moved "${item.title}" to #${targetIndex + 1}`);
+        }
+
+        function jumpToRank(currentIndex, newRankStr) {
+            const targetIndex = parseInt(newRankStr, 10) - 1;
+            if (isNaN(targetIndex) || targetIndex === currentIndex) return;
+            const item = scenarios.splice(currentIndex, 1)[0];
+            scenarios.splice(targetIndex, 0, item);
+            renderScenarios();
+            showToast(`Moved "${item.title}" to #${targetIndex + 1}`);
+        }
+
+        function resetOrder() {
+            scenarios = [...INITIAL_SCENARIOS];
+            renderScenarios();
+            showToast('Reset scenarios to original list.');
+        }
+
+        function generateExportSummary() {
+            const notes = document.getElementById('reflection-textarea').value || 'No personal notes provided.';
+            return `SCENARIO RANKING & REFLECTION SUMMARY
+==================================================
+Date: ${new Date().toLocaleDateString()}
+
+RANKED SCENARIOS (HARDEST TO EASIEST):
+${scenarios.map((item, idx) => `${idx + 1}. ${item.title}\n   ${item.desc}`).join('\n\n')}
+
+==================================================
+PERSONAL APPROACH & REFLECTION NOTES:
+${notes}
+==================================================`;
+        }
+
+        function copyReflection() {
+            const text = generateExportSummary();
+            const area = document.createElement('textarea');
+            area.value = text;
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            document.body.removeChild(area);
+            showToast('Copied reflection & ranking summary!');
+        }
+
+        function downloadReflection() {
+            const text = generateExportSummary();
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Scenario_Ranking_Reflection.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('Downloaded reflection file!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 2200);
+        }
+    </script>
+</body>
+</html>
